@@ -4,7 +4,7 @@ import json
 import cocos
 from MultiLanguage import MultiLanguage
 
-print "cocos_project: test = " + os.environ['ANDROID_SDK_ROOT']
+print "cocos_project: test = " + os.environ.get('ANDROID_SDK_ROOT','')
 
 class Project(object):
     CPP = 'cpp'

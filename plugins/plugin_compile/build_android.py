@@ -14,7 +14,7 @@ import json
 import re
 from xml.dom import minidom
 
-print "build_android: test = " + os.environ['ANDROID_SDK_ROOT']
+print "build_android: test = " + os.environ.get('ANDROID_SDK_ROOT','')
 
 import project_compile
 

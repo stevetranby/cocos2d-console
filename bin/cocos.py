@@ -26,7 +26,7 @@ import locale
 import gettext
 import json
 
-print "cocos: test = " + os.environ['ANDROID_SDK_ROOT']
+print "cocos: test = " + os.environ.get('ANDROID_SDK_ROOT','')
 
 # FIXME: MultiLanguage should be deprecated in favor of gettext
 from MultiLanguage import MultiLanguage

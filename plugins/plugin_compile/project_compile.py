@@ -24,7 +24,7 @@ import json
 import build_web
 import utils
 
-print "project_compile: test = " + os.environ['ANDROID_SDK_ROOT']
+print "project_compile: test = " + os.environ.get('ANDROID_SDK_ROOT','')
 
 class CCPluginCompile(cocos.CCPlugin):
     """
