@@ -5,10 +5,12 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := __PACKAGE_NAME___static
 LOCAL_MODULE_FILENAME := lib__PACKAGE_NAME__
 
+LOCAL_ARM_MODE := arm
+
 LOCAL_SRC_FILES := \
     $(LOCAL_PATH)/../package___PACKAGE_NAME___register.cpp
 
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/.. 
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/..
 
 LOCAL_C_INCLUDES := $(LOCAL_EXPORT_C_INCLUDES) \
                     $(LOCAL_PATH)/../../../frameworks/cocos2d-x/cocos \
