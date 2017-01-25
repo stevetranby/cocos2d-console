@@ -204,8 +204,11 @@ class AndroidBuilder(object):
     def get_toolchain_version(self, ndk_root, compile_obj):
         # it should be possible to override the toolchain
         if 'NDK_TOOLCHAIN_VERSION' in os.environ:
+            print "[steve]: found os.environ['NDK_TOOLCHAIN_VERSION'] = %s" % os.environ['NDK_TOOLCHAIN_VERSION']
             return os.environ['NDK_TOOLCHAIN_VERSION']
-        return '4.9'
+        else:
+            print "[steve]: using NDK_TOOLCHAIN_VERSION: 4.9"
+        return 'clang' #'4.9'
 
 
     def do_ndk_build(self, ndk_build_param, build_mode, compile_obj):
@@ -213,6 +216,7 @@ class AndroidBuilder(object):
         ndk_root = cocos.check_environment_variable('NDK_ROOT')
 
         toolchain_version = self.get_toolchain_version(ndk_root, compile_obj)
+        print "[steve:build_android.py:219] toolchain_version: %s" % toolchain_version
 
         if self.use_studio:
             ndk_work_dir = os.path.join(self.app_android_root, 'app')
