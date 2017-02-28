@@ -25,13 +25,15 @@ import string
 import locale
 import gettext
 import json
+import utils
+import re
 
 print "cocos: test = " + os.environ.get('ANDROID_SDK_ROOT','')
 
 # FIXME: MultiLanguage should be deprecated in favor of gettext
 from MultiLanguage import MultiLanguage
 
-COCOS2D_CONSOLE_VERSION = '2.2'
+COCOS2D_CONSOLE_VERSION = '2.3'
 
 
 class Cocos2dIniParser:
@@ -325,7 +327,6 @@ class DataStatistic(object):
         old_lines = f.readlines()
         f.close()
 
-        import re
         new_str = 'enable_stat=%s' % ('true' if agreed else 'false')
         new_lines = []
         for line in old_lines:
@@ -337,13 +338,17 @@ class DataStatistic(object):
         f.close()
 
     @classmethod
-    def show_stat_agreement(cls):
+    def show_stat_agreement(cls, skip_agree_value=None):
         if cls.is_agreement_shown():
             return
 
-        # show the agreement
-        input_value = raw_input(MultiLanguage.get_string('COCOS_AGREEMENT'))
-        agreed = (input_value.lower() != 'n' and input_value.lower() != 'no')
+        if skip_agree_value is None:
+            # show the agreement
+            input_value = raw_input(MultiLanguage.get_string('COCOS_AGREEMENT'))
+            agreed = (input_value.lower() != 'n' and input_value.lower() != 'no')
+        else:
+            # --agreement is used to skip the input
+            agreed = skip_agree_value
         cls.change_agree_stat(agreed)
 
     # change the last time statistics status in local config file.
@@ -368,7 +373,7 @@ class DataStatistic(object):
 
             if m is not None:
                 stat_cls = getattr(m, "Statistic")
-                cls.stat_obj = stat_cls()
+                cls.stat_obj = stat_cls(STAT_VERSION)
 
             # cocos_stat is found
             if cls.stat_obj is not None:
@@ -803,7 +808,6 @@ def copy_files_with_rules(src_rootDir, src, dst, include=None, exclude=None):
 
 
 def _in_rules(rel_path, rules):
-    import re
     ret = False
     path_str = rel_path.replace("\\", "/")
     for rule in rules:
@@ -889,11 +893,7 @@ def help():
     print(MultiLanguage.get_string('COCOS_HELP_EXAMPLE'))
 
 def show_version():
-    import utils
-    cur_path = get_current_path()
-    engine_path = os.path.normpath(os.path.join(cur_path, '../../../'))
-    engine_ver = utils.get_engine_version(engine_path)
-    print(engine_ver)
+    print(COCOS_ENGINE_VERSION)
     print("Cocos Console %s" % COCOS2D_CONSOLE_VERSION)
 
 def run_plugin(command, argv, plugins):
@@ -972,7 +972,36 @@ if __name__ == "__main__":
         sys.argv.pop(idx)
         sys.argv.pop(idx)
 
-    DataStatistic.show_stat_agreement()
+    agreement_arg = '--agreement'
+    skip_agree_value = None
+    if agreement_arg in sys.argv:
+        idx = sys.argv.index(agreement_arg)
+        if idx == (len(sys.argv) - 1):
+            Logging.error(MultiLanguage.get_string('COCOS_ERROR_AGREEMENT_NO_VALUE'))
+            sys.exit(CCPluginError.ERROR_WRONG_ARGS)
+
+        # get the argument value
+        agree_value = sys.argv[idx+1]
+        if agree_value.lower() == 'n':
+            skip_agree_value = False
+        else:
+            skip_agree_value = True
+
+        # remove the argument '--agreement' & the value
+        sys.argv.pop(idx)
+        sys.argv.pop(idx)
+
+    # Get the engine version for the DataStat
+    cur_path = get_current_path()
+    engine_path = os.path.normpath(os.path.join(cur_path, '../../../'))
+    COCOS_ENGINE_VERSION = utils.get_engine_version(engine_path)
+    STAT_VERSION = COCOS_ENGINE_VERSION
+    ver_pattern = r"cocos2d-x-(.*)"
+    match = re.match(ver_pattern, COCOS_ENGINE_VERSION)
+    if match:
+        STAT_VERSION = match.group(1)
+
+    DataStatistic.show_stat_agreement(skip_agree_value)
     DataStatistic.stat_event('cocos', 'start', 'invoked')
 
     if not _check_python_version():
