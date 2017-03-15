@@ -185,30 +185,89 @@ class AndroidBuilder(object):
                 if ext == ".a" or ext == ".so":
                     os.remove(lib_file)
 
+    def _get_android_sdk_tools_ver(self, sdk_tools_path):
+        cfg_file = os.path.join(sdk_tools_path, 'source.properties')
+
+        if os.path.isfile(cfg_file):
+            f = open(cfg_file)
+            lines = f.readlines()
+            pattern = r'^Pkg\.Revision=(\d+)\.(\d+)'
+            for l in lines:
+                match = re.match(pattern, l.strip())
+                if match:
+                    return ((int)(match.group(1)), (int)(match.group(2)))
+
+        raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_UNKNOWN_ANDROID_SDK_TOOLS_VERSION'),
+                                  cocos.CCPluginError.ERROR_PATH_NOT_FOUND)
+
+    def _update_project_properties(self, folder_path, target_str):
+        props_path = os.path.join(folder_path, 'project.properties')
+        f = open(props_path)
+        lines = f.readlines()
+        f.close()
+
+        pattern = r'^target=(.*)$'
+        matched = False
+        new_line = 'target=%s\n' % target_str
+        for i in range(0, len(lines)):
+            l = lines[i]
+            match = re.match(pattern, l.strip())
+            if match:
+                lines[i] = new_line
+                matched = True
+
+        if not matched:
+            lines.append('\n')
+            lines.append(new_line)
+
+        f = open(props_path, 'w')
+        f.writelines(lines)
+        f.close()
+
+    def _write_local_properties(self, folder_path):
+        local_porps_path = os.path.join(folder_path, 'local.properties')
+        lines = [
+            'sdk.dir=%s\n' % self.sdk_root,
+            'ndk.dir=%s\n' % cocos.check_environment_variable('NDK_ROOT')
+        ]
+        f = open(local_porps_path, 'w')
+        f.writelines(lines)
+        f.close()
+
     def update_project(self, android_platform):
         print "[steve] 173"
         if self.gradle_support_ndk:
             # If gradle supports ndk build, should write local.properties manually
-            local_porps_path = os.path.join(self.app_android_root, 'local.properties')
-            lines = [
-                'sdk.dir=%s\n' % self.sdk_root,
-                'ndk.dir=%s\n' % cocos.check_environment_variable('NDK_ROOT')
-            ]
-            f = open(local_porps_path, 'w')
-            f.writelines(lines)
-            f.close()
+            self._write_local_properties(self.app_android_root)
             return
+
+        # Android SDK removed android command & ant support from SDK tools 25.3.0
+        # So, we should check the Android SDK tools version
+        sdk_tools_folder = os.path.join(self.sdk_root, 'tools')
+        main_ver, minor_ver = self._get_android_sdk_tools_ver(sdk_tools_folder)
+        no_ant = False
+        if main_ver > 25 or (main_ver == 25 and minor_ver >= 3):
+            no_ant = True
+
+        if not self.use_studio and no_ant:
+            # Tip the message that ant is not supported from Android SDK tools 25.3.0
+            raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_ANT_NOT_SUPPORTED'),
+                                      cocos.CCPluginError.ERROR_OTHERS)
 
         if self.use_studio:
             manifest_path = os.path.join(self.app_android_root, 'app')
         else:
             manifest_path = self.app_android_root
+
         print "[steve] 178"
         sdk_tool_path = os.path.join(self.sdk_root, "tools", "android")
         print "[steve] sdk_tool_path = " + sdk_tool_path
+
         # check the android platform
         target_str = self.check_android_platform(self.sdk_root, android_platform, manifest_path)
-        print "[steve] 182"
+       
+print "MERGE BEG!!!!!!!\n!!!!!!\n!!!!!!"
+	    print "[steve] 182"
         # update project
         command = "%s update project -t %s -p %s" % (cocos.CMDRunner.convert_path_to_cmd(sdk_tool_path), target_str, manifest_path)
         self._run_cmd(command)
@@ -216,6 +275,21 @@ class AndroidBuilder(object):
         # update lib-projects
         property_path = manifest_path
         self.update_lib_projects(self.sdk_root, sdk_tool_path, android_platform, property_path)
+print "MERGE!!!!!!!\n!!!!!!\n!!!!!!"
+
+        if no_ant:
+            # should manually update the project
+            self._write_local_properties(manifest_path)
+            self._update_project_properties(manifest_path, target_str)
+        else:
+            # update project
+            sdk_tool_path = os.path.join(sdk_tools_folder, "android")
+            command = "%s update project -t %s -p %s" % (cocos.CMDRunner.convert_path_to_cmd(sdk_tool_path), target_str, manifest_path)
+            self._run_cmd(command)
+
+            # update lib-projects
+            self.update_lib_projects(self.sdk_root, sdk_tool_path, android_platform, manifest_path)
+print "MERGE END!!!!!!!\n!!!!!!\n!!!!!!"
 
         if self.use_studio:
             # copy the local.properties to the app_android_root
@@ -456,7 +530,11 @@ class AndroidBuilder(object):
                 AndroidBuilder.GRADLE_PROP_NDK_MODE: self.ndk_mode
             }
             if android_platform:
-                add_props[AndroidBuilder.GRADLE_PROP_TARGET_VERSION] = android_platform
+                ret = self.check_android_platform(self.sdk_root, android_platform, None)
+                pattern = r'android-(\d+)'
+                match = re.match(pattern, ret)
+                if match:
+                    add_props[AndroidBuilder.GRADLE_PROP_TARGET_VERSION] = (int)(match.group(1))
 
             if self.app_abi:
                 add_props[AndroidBuilder.GRADLE_PROP_APP_ABI] = ':'.join(self.app_abi.split(' '))

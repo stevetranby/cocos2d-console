@@ -456,7 +456,7 @@ class CCPluginCompile(cocos.CCPlugin):
         if engine_ver_str is None:
             return None
 
-        version_pattern = r'.*([\d]+)\.([\d]+)'
+        version_pattern = r'cocos2d-x-([\d]+)\.([\d]+)'
         match = re.match(version_pattern, engine_ver_str)
         if match:
             return ((int)(match.group(1)), (int)(match.group(2)))
@@ -1018,7 +1018,7 @@ class CCPluginCompile(cocos.CCPlugin):
             return ret
 
         if (major_ver > 3) or (major_ver == 3 and minor_ver >= 7):
-            ret = [ 2013, 2015 ]
+            ret = [ 2013, 2015, 2017 ]
         else:
             ret = [ 2012, 2013 ]
 
