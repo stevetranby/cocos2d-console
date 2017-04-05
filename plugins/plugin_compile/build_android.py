@@ -272,9 +272,9 @@ class AndroidBuilder(object):
 
         # check the android platform
         target_str = self.check_android_platform(self.sdk_root, android_platform, manifest_path)
-       
-print "MERGE BEG!!!!!!!\n!!!!!!\n!!!!!!"
-	    print "[steve] 182"
+
+        print "MERGE BEG!!!!!!!\n!!!!!!\n!!!!!!"
+        print "[steve] 182"
         # update project
         command = "%s update project -t %s -p %s" % (cocos.CMDRunner.convert_path_to_cmd(sdk_tool_path), target_str, manifest_path)
         self._run_cmd(command)
@@ -282,7 +282,7 @@ print "MERGE BEG!!!!!!!\n!!!!!!\n!!!!!!"
         # update lib-projects
         property_path = manifest_path
         self.update_lib_projects(self.sdk_root, sdk_tool_path, android_platform, property_path)
-print "MERGE!!!!!!!\n!!!!!!\n!!!!!!"
+        print "MERGE!!!!!!!\n!!!!!!\n!!!!!!"
 
         if no_ant:
             # should manually update the project
@@ -296,7 +296,7 @@ print "MERGE!!!!!!!\n!!!!!!\n!!!!!!"
 
             # update lib-projects
             self.update_lib_projects(self.sdk_root, sdk_tool_path, android_platform, manifest_path)
-print "MERGE END!!!!!!!\n!!!!!!\n!!!!!!"
+            print "MERGE END!!!!!!!\n!!!!!!\n!!!!!!"
 
         if self.use_studio:
             # copy the local.properties to the app_android_root
