@@ -476,66 +476,40 @@ class CCPluginCompile(cocos.CCPlugin):
         print "[steve] output_dir = %s" % output_dir
 
         # get the android project path
-        # if both proj.android & proj.android-studio existed, select the project path by --studio argument
-        # else, use the existed one.
         cfg_obj = self._platforms.get_current_config()
-        proj_android_path = cfg_obj.proj_path
-        proj_studio_path = cfg_obj.studio_path
-        project_android_dir = None
-        using_studio = False
-
-        if self.is_valid_path(proj_android_path) and self.is_valid_path(proj_studio_path):
-            if self.use_studio:
-                project_android_dir = proj_studio_path
-                using_studio = True
-            else:
-                project_android_dir = proj_android_path
-                using_studio = False
-        elif self.is_valid_path(proj_android_path):
-            project_android_dir = proj_android_path
-            using_studio = False
-        elif self.is_valid_path(proj_studio_path):
-            project_android_dir = proj_studio_path
-            using_studio = True
+        project_android_dir = cfg_obj.proj_path
 
         print "[steve] proj_android_path = %s" % proj_android_path
         print "[steve] proj_studio_path = %s" % proj_studio_path
         print "[steve] project_android_dir = %s" % project_android_dir
 
-        if using_studio:
-            ide_name = 'Android Studio'
-        else:
-            ide_name = 'Eclipse' # using eclipse project
+        ide_name = 'Android Studio'
+
         cocos.Logging.info(MultiLanguage.get_string('COMPILE_INFO_ANDROID_PROJPATH_FMT', (ide_name, project_android_dir)))
 
         # Check whether the gradle of the project is support ndk or not
-        gradle_support_ndk = False
-        if using_studio:
-            # Get the engine version of the project
-            engine_version_num = self.get_engine_version_num()
-            if engine_version_num is None:
-                raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_UNKNOWN_ENGINE_VERSION'))
+        # Get the engine version of the project
+        engine_version_num = self.get_engine_version_num()
+        if engine_version_num is None:
+            raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_UNKNOWN_ENGINE_VERSION'))
 
-            # Gradle supports NDK build from engine 3.15
-            main_ver = engine_version_num[0]
-            minor_ver = engine_version_num[1]
-            if main_ver > 3 or (main_ver == 3 and minor_ver >= 15):
-                gradle_support_ndk = True
+        # Gradle supports NDK build from engine 3.15
+        main_ver = engine_version_num[0]
+        minor_ver = engine_version_num[1]
+        if main_ver > 3 or (main_ver == 3 and minor_ver >= 15):
+            gradle_support_ndk = True
+            
 
         from build_android import AndroidBuilder
         builder = AndroidBuilder(self._verbose, project_android_dir,
                                  self._no_res, self._project, self._ndk_mode,
-                                 self.app_abi, using_studio, gradle_support_ndk)
+                                 self.app_abi, gradle_support_ndk)
 
         args_ndk_copy = self._custom_step_args.copy()
         target_platform = self._platforms.get_current_platform()
 
-        print "[steve] 478"
-
         # update the project with the android platform
         builder.update_project(self._ap)
-
-        print "[steve] 483"
 
         if not self._project._is_script_project() or self._project._is_native_support():
             if self._ndk_mode != "none" and not gradle_support_ndk:
@@ -557,10 +531,8 @@ class CCPluginCompile(cocos.CCPlugin):
                 self._project.invoke_custom_step_script(cocos_project.Project.CUSTOM_STEP_PRE_NDK_BUILD, target_platform, args_ndk_copy)
 
                 modify_mk = False
-                if using_studio:
-                    app_mk = os.path.join(project_android_dir, "app/jni/Application.mk")
-                else:
-                    app_mk = os.path.join(project_android_dir, "jni/Application.mk")
+                app_mk = os.path.join(project_android_dir, "app/jni/Application.mk")
+
                 mk_content = None
                 if self.cppflags and os.path.exists(app_mk):
                     # record the content of Application.mk
@@ -725,7 +697,7 @@ class CCPluginCompile(cocos.CCPlugin):
         if not cocos.os_is_mac():
             raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_BUILD_ON_MAC'),
                                       cocos.CCPluginError.ERROR_WRONG_ARGS)
-
+              
         if self._sign_id is not None:
             cocos.Logging.info(MultiLanguage.get_string('COMPILE_INFO_IOS_SIGN_FMT', self._sign_id))
             self.use_sdk = 'iphoneos'
@@ -805,7 +777,7 @@ class CCPluginCompile(cocos.CCPlugin):
             if self._project._is_lua_project():
                 self.backup_dir(script_src_dir)
                 # create 64-bit folder and build 64-bit bytecode
-                # should build 64-bit first because `script_src_dir` will be deleted when building 32-bit bytecode
+                # should build 64-bit first because `script_src_dir` will be deleted when building 32-bit bytecode 
                 folder_64bit = os.path.join(script_src_dir, '64bit')
                 self.compile_lua_scripts(script_src_dir, folder_64bit, True)
                 # build 32-bit bytecode
@@ -1406,7 +1378,7 @@ class CCPluginCompile(cocos.CCPlugin):
         indexHtmlOutputFile = open(os.path.join(publish_dir, "index.html"), "w")
         indexHtmlOutputFile.write(indexContent)
         indexHtmlOutputFile.close()
-
+        
         # copy res dir
         if cfg_obj.copy_res is None:
             dst_dir = os.path.join(publish_dir, 'res')
@@ -1672,8 +1644,6 @@ class CCPluginCompile(cocos.CCPlugin):
         self.build_linux()
         self.build_metro()
         self.build_tizen()
-
-        print "[steve] finished calling build_[platform]"
 
         print "[steve] finished calling build_[platform]"
 
