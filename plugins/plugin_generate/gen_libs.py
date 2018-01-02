@@ -320,33 +320,35 @@ class LibsCompiler(cocos.CCPlugin):
         for key in build_types:
             proj_info = xcode_proj_info[key]
             proj_path = os.path.join(self.repo_x, proj_info['proj_path'])
+
             target = proj_info['targets']
 
+            print "stupid"
 
-        print "[steve] Target: %s" % target
-        print "[steve] Library: %s" % self.arg_library
-        
-        # TODO: should make this configurable (or not hard coded)
-        # if should build and its the target then build
-        # otherwise continue
-        print "[steve] checking cocos2d: %s" % self.build_libcocos2d
+            #print "[steve] Target: %s" % target
+            #print "[steve] Library: %s" % self.arg_library
+
+            # TODO: should make this configurable (or not hard coded)
+            # if should build and its the target then build
+            # otherwise continue
+            print "[steve] checking cocos2d: %s" % self.build_libcocos2d
             print "[steve] checking lua: %s" % self.build_libluacocos2d
             print "[steve] checking js: %s" % self.build_libjscocos2d
             print "[steve] checking sim: %s" % self.build_libsimulator
-            
+
             if "libcocos2d" in target:
                 if not self.build_libcocos2d:
                     continue
-        if "libluacocos2d" in target:
-            if not self.build_libluacocos2d:
-                continue
+            if "libluacocos2d" in target:
+                if not self.build_libluacocos2d:
+                    continue
             if "libjscocos2d" in target:
                 if not self.build_libjscocos2d:
                     continue
-        if "libsimulator" in target:
-            if not self.build_libsimulator:
-                continue
-            
+            if "libsimulator" in target:
+                if not self.build_libsimulator:
+                    continue
+                
             #continue
             print ""
             print "Building Target: %s, Library: %s" % (target, self.arg_library)

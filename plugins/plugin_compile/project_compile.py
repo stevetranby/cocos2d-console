@@ -479,8 +479,8 @@ class CCPluginCompile(cocos.CCPlugin):
         cfg_obj = self._platforms.get_current_config()
         project_android_dir = cfg_obj.proj_path
 
-        print "[steve] proj_android_path = %s" % proj_android_path
-        print "[steve] proj_studio_path = %s" % proj_studio_path
+        #print "[steve] proj_android_path = %s" % proj_android_path
+        #print "[steve] proj_studio_path = %s" % proj_studio_path
         print "[steve] project_android_dir = %s" % project_android_dir
 
         ide_name = 'Android Studio'
@@ -498,7 +498,7 @@ class CCPluginCompile(cocos.CCPlugin):
         minor_ver = engine_version_num[1]
         if main_ver > 3 or (main_ver == 3 and minor_ver >= 15):
             gradle_support_ndk = True
-            
+
 
         from build_android import AndroidBuilder
         builder = AndroidBuilder(self._verbose, project_android_dir,
@@ -697,7 +697,7 @@ class CCPluginCompile(cocos.CCPlugin):
         if not cocos.os_is_mac():
             raise cocos.CCPluginError(MultiLanguage.get_string('COMPILE_ERROR_BUILD_ON_MAC'),
                                       cocos.CCPluginError.ERROR_WRONG_ARGS)
-              
+
         if self._sign_id is not None:
             cocos.Logging.info(MultiLanguage.get_string('COMPILE_INFO_IOS_SIGN_FMT', self._sign_id))
             self.use_sdk = 'iphoneos'
@@ -777,7 +777,7 @@ class CCPluginCompile(cocos.CCPlugin):
             if self._project._is_lua_project():
                 self.backup_dir(script_src_dir)
                 # create 64-bit folder and build 64-bit bytecode
-                # should build 64-bit first because `script_src_dir` will be deleted when building 32-bit bytecode 
+                # should build 64-bit first because `script_src_dir` will be deleted when building 32-bit bytecode
                 folder_64bit = os.path.join(script_src_dir, '64bit')
                 self.compile_lua_scripts(script_src_dir, folder_64bit, True)
                 # build 32-bit bytecode
@@ -1378,7 +1378,7 @@ class CCPluginCompile(cocos.CCPlugin):
         indexHtmlOutputFile = open(os.path.join(publish_dir, "index.html"), "w")
         indexHtmlOutputFile.write(indexContent)
         indexHtmlOutputFile.close()
-        
+
         # copy res dir
         if cfg_obj.copy_res is None:
             dst_dir = os.path.join(publish_dir, 'res')
